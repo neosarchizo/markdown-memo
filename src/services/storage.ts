@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'expo-crypto';
 import { Database } from './database';
 import type { Memo, MemoRow, TagRow, MemoTagRow } from '@/types/memo';
 
@@ -50,7 +50,7 @@ export class StorageService {
    * Save a new memo
    */
   static async saveMemo(memo: Memo): Promise<void> {
-    const id = memo.id || uuidv4();
+    const id = memo.id || randomUUID();
     const now = new Date().toISOString();
 
     await Database.transaction(async () => {

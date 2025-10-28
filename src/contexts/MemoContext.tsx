@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'expo-crypto';
 import { StorageService } from '@/services/storage';
 import type { Memo, MemoContextValue } from '@/types/memo';
 
@@ -37,7 +37,7 @@ export function MemoProvider({ children }: MemoProviderProps) {
   const createMemo = useCallback(async (memoData: Partial<Memo>): Promise<Memo> => {
     try {
       const newMemo: Memo = {
-        id: uuidv4(),
+        id: randomUUID(),
         title: memoData.title || 'Untitled',
         content: memoData.content || '',
         tags: memoData.tags || [],
