@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Markdown Memo",
+    "slug": "markdown-memo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "markdown-memo",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.markdownmemo.app"
+    },
+    "android": {
+      "package": "com.markdownmemo.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
