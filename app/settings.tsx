@@ -1,13 +1,16 @@
 import { View, StyleSheet } from 'react-native';
-import { Text, List, Switch } from 'react-native-paper';
-import { useState } from 'react';
+import { List, Switch } from 'react-native-paper';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsScreen() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
-  const toggleDarkMode = () => {
-    // TODO: Implement theme switching in Phase 1
-    setIsDarkMode(!isDarkMode);
+  const handleToggleTheme = async () => {
+    try {
+      await toggleTheme();
+    } catch (error) {
+      console.error('Failed to toggle theme:', error);
+    }
   };
 
   return (
@@ -18,7 +21,7 @@ export default function SettingsScreen() {
           title="Dark Mode"
           description="Toggle between light and dark theme"
           right={() => (
-            <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
+            <Switch value={isDark} onValueChange={handleToggleTheme} />
           )}
         />
       </List.Section>
