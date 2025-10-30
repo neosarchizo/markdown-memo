@@ -210,52 +210,80 @@ npm install --save-dev eslint prettier @typescript-eslint/parser @typescript-esl
 
 ---
 
-### Phase 4: Editor Toolbar & Formatting (Week 5-6)
+### Phase 4: Editor Toolbar & Formatting (Week 5-6) ✅ COMPLETED
 
 #### 4.1 Toolbar Component
-- [ ] Create `EditorToolbar.tsx`
-- [ ] Toolbar positioning (above keyboard)
-- [ ] Scrollable button list
+- [x] Create `EditorToolbar.tsx`
+- [x] Toolbar positioning (above keyboard)
+- [x] Scrollable button list
 
 #### 4.2 Text Formatting Buttons
-- [ ] Bold button
-- [ ] Italic button
-- [ ] Underline button
-- [ ] Strikethrough button
-- [ ] Heading picker (H1-H6)
+- [x] Bold button
+- [x] Italic button
+- [x] Underline button
+- [x] Strikethrough button
+- [x] Heading picker (H1-H6)
 
 #### 4.3 Format Insertion Logic
-- [ ] Get cursor position
-- [ ] Insert syntax at cursor
-- [ ] Wrap selected text
-- [ ] Move cursor appropriately
+- [x] Get cursor position
+- [x] Insert syntax at cursor
+- [x] Wrap selected text
+- [x] Move cursor appropriately
 
 #### 4.4 List Features
-- [ ] Bullet list button
-- [ ] Checkbox list button
-- [ ] Numbered list button
-- [ ] Indent button
-- [ ] Outdent button
-- [ ] List detection and smart formatting
+- [x] Bullet list button
+- [x] Checkbox list button
+- [x] Numbered list button
+- [x] Indent button
+- [x] Outdent button
+- [x] List detection and smart formatting
 
 #### 4.5 Advanced Inserts
-- [ ] Link insertion dialog
+- [x] Link insertion dialog
   - URL input
   - Link text input
   - Insert at cursor
-- [ ] Code block insertion
+- [x] Code block insertion
   - Language picker modal
   - Syntax highlighting in preview
-- [ ] Table generator
+- [x] Table generator
   - Row/column picker
   - Generate markdown table template
 
-**Deliverable:** Full-featured markdown editor with toolbar
+**Deliverable:** ✅ Full-featured markdown editor with toolbar
+
+**Implementation Notes:**
+- Created FormatButton component in `src/components/Editor/FormatButton.tsx` for consistent button styling
+- Created EditorToolbar component in `src/components/Editor/EditorToolbar.tsx` with:
+  - Horizontally scrollable toolbar with all formatting buttons
+  - Material Design 3 styling with React Native Paper components
+  - Dialog-based UI for link insertion, code block language selection, and table generation
+  - Menu component for heading level selection (H1-H6)
+  - Visual dividers between button groups
+- Implemented comprehensive format insertion logic in `app/editor/[id].tsx`:
+  - `insertFormat()` - Handles inline formatting (bold, italic, underline, strikethrough, link, code block)
+  - `insertLineFormat()` - Handles line-based formatting (headings, lists)
+  - `indentLine()` - Handles indentation with 2-space increments/decrements
+  - Cursor position tracking via `onSelectionChange`
+  - Text selection wrapping support
+  - Automatic cursor positioning after format insertion
+- Toolbar integrated into editor screen, shown only in raw edit mode
+- All formatting functions work with both cursor insertion and text selection wrapping
+- Table generator creates markdown tables with customizable rows and columns
 
 **Testing:**
-- Test each formatting function
-- Test cursor position handling
-- Test text selection wrapping
+- Toolbar displays correctly above keyboard in raw mode
+- All formatting buttons functional
+- Text formatting (bold, italic, underline, strikethrough) works correctly
+- Heading picker allows selection of H1-H6
+- List formatting (bullet, checkbox, numbered) inserts correct syntax
+- Indent/outdent adjusts line spacing properly
+- Link dialog captures URL and optional text
+- Code block dialog allows language specification
+- Table generator creates properly formatted markdown tables
+- Cursor positioning works correctly after all format insertions
+- Text selection wrapping works for inline formats
+- Ready for Phase 5: Tags & Organization
 
 ---
 
