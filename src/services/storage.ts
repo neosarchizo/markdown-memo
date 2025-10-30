@@ -74,41 +74,41 @@ export class StorageService {
   static async updateMemo(id: string, updates: Partial<Memo>): Promise<void> {
     const now = new Date().toISOString();
 
-    await Database.transaction(async () => {
-      // Build update query dynamically
-      const fields: string[] = [];
-      const values: (string | number)[] = [];
+    // Build update query dynamically
+    const fields: string[] = [];
+    const values: (string | number)[] = [];
 
-      if (updates.title !== undefined) {
-        fields.push('title = ?');
-        values.push(updates.title);
-      }
-      if (updates.content !== undefined) {
-        fields.push('content = ?');
-        values.push(updates.content);
-      }
-      if (updates.isPinned !== undefined) {
-        fields.push('isPinned = ?');
-        values.push(updates.isPinned ? 1 : 0);
-      }
+    if (updates.title !== undefined) {
+      fields.push('title = ?');
+      values.push(updates.title);
+    }
+    if (updates.content !== undefined) {
+      fields.push('content = ?');
+      values.push(updates.content);
+    }
+    if (updates.isPinned !== undefined) {
+      fields.push('isPinned = ?');
+      values.push(updates.isPinned ? 1 : 0);
+    }
 
-      // Always update updatedAt
-      fields.push('updatedAt = ?');
-      values.push(now);
+    // Always update updatedAt
+    fields.push('updatedAt = ?');
+    values.push(now);
 
-      if (fields.length > 0) {
-        values.push(id);
-        await Database.executeUpdate(
-          `UPDATE memos SET ${fields.join(', ')} WHERE id = ?`,
-          values
-        );
-      }
+    if (fields.length > 0) {
+      values.push(id);
+      await Database.executeUpdate(
+        `UPDATE memos SET ${fields.join(', ')} WHERE id = ?`,
+        values
+      );
+    }
 
-      // Update tags if provided
-      if (updates.tags !== undefined) {
+    // Update tags if provided (in a separate transaction if needed)
+    if (updates.tags !== undefined) {
+      await Database.transaction(async () => {
         await this.setTagsForMemo(id, updates.tags);
-      }
-    });
+      });
+    }
   }
 
   /**
