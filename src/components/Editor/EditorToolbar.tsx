@@ -26,6 +26,8 @@ interface EditorToolbarProps {
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
   const theme = useTheme();
 
+  console.log('EditorToolbar rendered');
+
   // Dialog states
   const [linkDialogVisible, setLinkDialogVisible] = useState(false);
   const [linkText, setLinkText] = useState('');
@@ -198,13 +200,15 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
 
 const styles = StyleSheet.create({
   toolbar: {
-    paddingVertical: 4,
+    paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    minHeight: 60,
   },
   scrollContent: {
     paddingHorizontal: 8,
     alignItems: 'center',
+    height: 50,
   },
   divider: {
     width: 1,

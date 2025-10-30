@@ -231,7 +231,7 @@ export default function EditorScreen() {
     link: (text: string, url: string) => insertFormat(`[${text}](${url})`),
     codeBlock: (language: string) => {
       const lang = language ? language : '';
-      insertFormat(`\`\`\`${lang}\n`, '\n\`\`\``);
+      insertFormat('```' + lang + '\n', '\n```');
     },
     table: (rows: number, cols: number) => {
       // Generate markdown table
@@ -292,61 +292,67 @@ export default function EditorScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ViewToggle value={viewMode} onValueChange={setViewMode} />
-          {isSaving && (
-            <Text variant="bodySmall" style={styles.savingText}>
-              Saving...
-            </Text>
-          )}
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <ViewToggle value={viewMode} onValueChange={setViewMode} />
+        {isSaving && (
+          <Text variant="bodySmall" style={styles.savingText}>
+            Saving...
+          </Text>
+        )}
+      </View>
 
+      <KeyboardAvoidingView
+        style={styles.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
         {viewMode === 'raw' ? (
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <TextInput
-              label="Title"
-              value={title}
-              onChangeText={setTitle}
-              mode="outlined"
-              style={styles.titleInput}
-              placeholder="Enter memo title"
-              disabled={loading}
-            />
-            <TextInput
-              ref={contentInputRef}
-              label="Content"
-              value={content}
-              onChangeText={setContent}
-              onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
-              mode="outlined"
-              multiline
-              numberOfLines={15}
-              style={styles.contentInput}
-              placeholder="Write your memo here... (Markdown supported)"
-              disabled={loading}
-            />
-            {isNewMemo && (
-              <Button
-                mode="contained"
-                onPress={handleSave}
-                style={styles.saveButton}
-                loading={loading}
+          <View style={styles.flex1}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TextInput
+                label="Title"
+                value={title}
+                onChangeText={setTitle}
+                mode="outlined"
+                style={styles.titleInput}
+                placeholder="Enter memo title"
                 disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save'}
-              </Button>
-            )}
-          </ScrollView>
+              />
+              <TextInput
+                ref={contentInputRef}
+                label="Content"
+                value={content}
+                onChangeText={setContent}
+                onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                mode="outlined"
+                multiline
+                numberOfLines={15}
+                style={styles.contentInput}
+                placeholder="Write your memo here... (Markdown supported)"
+                disabled={loading}
+              />
+              {isNewMemo && (
+                <Button
+                  mode="contained"
+                  onPress={handleSave}
+                  style={styles.saveButton}
+                  loading={loading}
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Save'}
+                </Button>
+              )}
+            </ScrollView>
+            <View style={{ backgroundColor: '#ff0000', padding: 10 }}>
+              <Text style={{ color: '#fff' }}>TOOLBAR HERE</Text>
+            </View>
+            <EditorToolbar actions={toolbarActions} />
+          </View>
         ) : (
           <ScrollView
             style={styles.previewContainer}
@@ -358,24 +364,25 @@ export default function EditorScreen() {
             <MarkdownViewer content={content} />
           </ScrollView>
         )}
+      </KeyboardAvoidingView>
 
-        {viewMode === 'raw' && <EditorToolbar actions={toolbarActions} />}
-
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={1500}
-          style={styles.snackbar}
-        >
-          {snackbarMessage}
-        </Snackbar>
-      </View>
-    </KeyboardAvoidingView>
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={1500}
+        style={styles.snackbar}
+      >
+        {snackbarMessage}
+      </Snackbar>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  flex1: {
     flex: 1,
   },
   header: {
