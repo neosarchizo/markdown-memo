@@ -348,9 +348,6 @@ export default function EditorScreen() {
                 </Button>
               )}
             </ScrollView>
-            <View style={{ backgroundColor: '#ff0000', padding: 10 }}>
-              <Text style={{ color: '#fff' }}>TOOLBAR HERE</Text>
-            </View>
             <EditorToolbar actions={toolbarActions} />
           </View>
         ) : (

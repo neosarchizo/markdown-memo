@@ -26,8 +26,6 @@ interface EditorToolbarProps {
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
   const theme = useTheme();
 
-  console.log('EditorToolbar rendered');
-
   // Dialog states
   const [linkDialogVisible, setLinkDialogVisible] = useState(false);
   const [linkText, setLinkText] = useState('');
