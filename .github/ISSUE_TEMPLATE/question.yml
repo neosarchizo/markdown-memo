@@ -1,0 +1,75 @@
+name: ❓ 질문
+description: 사용법이나 기능에 대해 궁금한 점을 물어보세요
+title: "[질문] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        질문해주셔서 감사합니다! 최대한 빠르게 답변드리겠습니다.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 질문 내용
+      description: 궁금하신 내용을 작성해주세요.
+      placeholder: |
+        예) 메모를 다른 앱으로 내보낼 때 어떤 형식을 사용해야 하나요?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 질문 카테고리
+      description: 어느 부분에 대한 질문인가요?
+      options:
+        - 설치 및 설정
+        - 기본 사용법
+        - 마크다운 편집
+        - 검색 기능
+        - 내보내기/공유
+        - 태그 및 정리
+        - 설정
+        - 기타
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 시도해본 방법
+      description: 문제를 해결하기 위해 어떤 방법을 시도해보셨나요?
+      placeholder: |
+        - README 문서를 확인했습니다
+        - 설정 메뉴를 살펴봤습니다
+        - 비슷한 이슈를 검색했습니다
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 추가 정보
+      description: 질문과 관련된 추가 정보가 있다면 작성해주세요. (스크린샷, 에러 메시지 등)
+      placeholder: 스크린샷이나 추가 설명을 여기에 작성해주세요.
+    validations:
+      required: false
+
+  - type: input
+    id: platform
+    attributes:
+      label: 플랫폼
+      description: 어떤 플랫폼을 사용하고 계신가요?
+      placeholder: 예) Android 14, iOS 17.5
+    validations:
+      required: false
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 앱 버전
+      description: 앱 버전을 입력해주세요. (설정 화면에서 확인 가능)
+      placeholder: 예) 1.0.0
+    validations:
+      required: false
