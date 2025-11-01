@@ -15,7 +15,10 @@
       "bundleIdentifier": "com.markdownmemo.app"
     },
     "android": {
-      "package": "com.markdownmemo.app"
+      "package": "com.markdownmemo.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
     },
     "web": {
       "bundler": "metro"
