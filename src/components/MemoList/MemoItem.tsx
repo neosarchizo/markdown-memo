@@ -47,7 +47,7 @@ export default function MemoItem({ memo, onPress, onTogglePin, onDelete }: MemoI
               {memo.title || 'Untitled'}
             </Text>
             {memo.isPinned && (
-              <Chip icon="pin" compact style={styles.pinnedChip}>
+              <Chip icon="pin" compact style={styles.pinnedChip} textStyle={styles.pinnedChipText}>
                 Pinned
               </Chip>
             )}
@@ -128,7 +128,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pinnedChip: {
-    height: 24,
+    height: 32,
+  },
+  pinnedChipText: {
+    marginVertical: 4,
+    lineHeight: 20,
   },
   preview: {
     opacity: 0.7,

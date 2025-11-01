@@ -25,6 +25,9 @@ export default function HomeScreen() {
     setRefreshing(true);
     try {
       await loadMemos();
+      // Search will automatically re-run via useSearch hook when memos update
+    } catch (error) {
+      console.error('Error refreshing memos:', error);
     } finally {
       setRefreshing(false);
     }
