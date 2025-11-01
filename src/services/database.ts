@@ -160,11 +160,23 @@ export class Database {
    * Initialize database (create tables and run migrations if needed)
    */
   static async initialize(): Promise<void> {
-    await this.createTables();
+    console.log('[Database] Initializing database...');
+    try {
+      await this.createTables();
+      console.log('[Database] Tables created successfully');
 
-    const currentVersion = await this.getVersion();
-    if (currentVersion < this.DB_VERSION) {
-      await this.migrate(currentVersion, this.DB_VERSION);
+      const currentVersion = await this.getVersion();
+      console.log('[Database] Current version:', currentVersion);
+
+      if (currentVersion < this.DB_VERSION) {
+        console.log('[Database] Running migration...');
+        await this.migrate(currentVersion, this.DB_VERSION);
+      }
+
+      console.log('[Database] Initialization complete');
+    } catch (error) {
+      console.error('[Database] Initialization failed:', error);
+      throw error;
     }
   }
 
