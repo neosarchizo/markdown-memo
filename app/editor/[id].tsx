@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TextInput as RNTextInput } from 'react-native';
-import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon, IconButton, Menu } from 'react-native-paper';
+import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon, IconButton, Menu, Dialog, Portal, List } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { useMemos } from '@/contexts/MemoContext';
@@ -26,7 +26,7 @@ export default function EditorScreen() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [exportMethodDialogVisible, setExportMethodDialogVisible] = useState(false);
   const [exportFormatMenuVisible, setExportFormatMenuVisible] = useState(false);
   const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>('markdown');
 
@@ -36,7 +36,6 @@ export default function EditorScreen() {
   const originalTitleRef = useRef('');
   const originalContentRef = useRef('');
   const contentInputRef = useRef<RNTextInput>(null);
-  const exportButtonRef = useRef<View>(null);
 
   // Debounce content for auto-save (1 second)
   const debouncedTitle = useDebounce(title, 1000);
@@ -305,7 +304,7 @@ export default function EditorScreen() {
   };
 
   const handleExport = async (method: ExportMethod) => {
-    setExportMenuVisible(false);
+    setExportMethodDialogVisible(false);
     setExportFormatMenuVisible(false);
 
     // Create current memo object
@@ -341,10 +340,10 @@ export default function EditorScreen() {
     }
   };
 
-  const openExportMenu = (format: ExportFormat) => {
+  const openExportMethodDialog = (format: ExportFormat) => {
     setSelectedExportFormat(format);
     setExportFormatMenuVisible(false);
-    setExportMenuVisible(true);
+    setExportMethodDialogVisible(true);
   };
 
   return (
@@ -362,68 +361,75 @@ export default function EditorScreen() {
               <Icon source="check-circle" size={24} color="#4CAF50" />
             )}
           </View>
-          <View ref={exportButtonRef}>
-            <Menu
-              visible={exportFormatMenuVisible}
-              onDismiss={() => setExportFormatMenuVisible(false)}
-              anchor={
-                <IconButton
-                  icon="export-variant"
-                  size={24}
-                  onPress={() => setExportFormatMenuVisible(true)}
-                />
-              }
-            >
-              <Menu.Item
-                onPress={() => openExportMenu('markdown')}
-                title="Export as Markdown"
-                leadingIcon="language-markdown"
+          <Menu
+            visible={exportFormatMenuVisible}
+            onDismiss={() => setExportFormatMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="export-variant"
+                size={24}
+                onPress={() => setExportFormatMenuVisible(true)}
               />
-              <Menu.Item
-                onPress={() => openExportMenu('pdf')}
-                title="Export as PDF"
-                leadingIcon="file-pdf-box"
-              />
-              <Menu.Item
-                onPress={() => openExportMenu('text')}
-                title="Export as Text"
-                leadingIcon="text-box"
-              />
-            </Menu>
-          </View>
+            }
+          >
+            <Menu.Item
+              onPress={() => openExportMethodDialog('markdown')}
+              title="Export as Markdown"
+              leadingIcon="language-markdown"
+            />
+            <Menu.Item
+              onPress={() => openExportMethodDialog('pdf')}
+              title="Export as PDF"
+              leadingIcon="file-pdf-box"
+            />
+            <Menu.Item
+              onPress={() => openExportMethodDialog('text')}
+              title="Export as Text"
+              leadingIcon="text-box"
+            />
+          </Menu>
         </View>
       </View>
 
-      {/* Export method menu */}
-      {exportButtonRef.current && (
-        <Menu
-          visible={exportMenuVisible}
-          onDismiss={() => setExportMenuVisible(false)}
-          anchor={exportButtonRef.current}
+      {/* Export method dialog */}
+      <Portal>
+        <Dialog
+          visible={exportMethodDialogVisible}
+          onDismiss={() => setExportMethodDialogVisible(false)}
         >
-          <Menu.Item
-            onPress={() => handleExport('clipboard')}
-            title="Copy to Clipboard"
-            leadingIcon="content-copy"
-            disabled={selectedExportFormat === 'pdf'}
-          />
-          <Menu.Item
-            onPress={() => handleExport('share')}
-            title="Share"
-            leadingIcon="share-variant"
-          />
-          <Menu.Item
-            onPress={() => handleExport('save')}
-            title="Save to Device"
-            leadingIcon="content-save"
-          />
-          <Menu.Item
-            onPress={() => handleExport('email')}
-            title="Send via Email"
-            leadingIcon="email"
-          />
-        </Menu>
-      )}
+          <Dialog.Title>Choose Export Method</Dialog.Title>
+          <Dialog.Content>
+            <List.Item
+              title="Copy to Clipboard"
+              description={selectedExportFormat === 'pdf' ? 'Not available for PDF' : 'Copy content to clipboard'}
+              left={props => <List.Icon {...props} icon="content-copy" />}
+              onPress={() => handleExport('clipboard')}
+              disabled={selectedExportFormat === 'pdf'}
+            />
+            <List.Item
+              title="Share"
+              description="Share via installed apps"
+              left={props => <List.Icon {...props} icon="share-variant" />}
+              onPress={() => handleExport('share')}
+            />
+            <List.Item
+              title="Save to Device"
+              description="Save file to device storage"
+              left={props => <List.Icon {...props} icon="content-save" />}
+              onPress={() => handleExport('save')}
+            />
+            <List.Item
+              title="Send via Email"
+              description="Open email client with attachment"
+              left={props => <List.Icon {...props} icon="email" />}
+              onPress={() => handleExport('email')}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setExportMethodDialogVisible(false)}>Cancel</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <KeyboardAvoidingView
         style={styles.flex1}

@@ -106,7 +106,7 @@ export class StorageService {
     // Update tags if provided (in a separate transaction if needed)
     if (updates.tags !== undefined) {
       await Database.transaction(async () => {
-        await this.setTagsForMemo(id, updates.tags);
+        await this.setTagsForMemo(id, updates.tags!);
       });
     }
   }
