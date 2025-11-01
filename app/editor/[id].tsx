@@ -3,6 +3,7 @@ import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon, IconButton,
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { useMemos } from '@/contexts/MemoContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { ViewMode, ExportFormat, ExportMethod, Memo } from '@/types/memo';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useExport } from '@/hooks/useExport';
@@ -14,6 +15,7 @@ import { TagInput } from '@/components/Common/TagInput';
 export default function EditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
   const { memos, createMemo, updateMemo } = useMemos();
   const { exportMemo } = useExport();
 
@@ -351,18 +353,18 @@ export default function EditorScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         <View style={styles.toggleContainer}>
           <ViewToggle value={viewMode} onValueChange={setViewMode} />
         </View>
         <View style={styles.headerRightContainer}>
           <View style={styles.saveStatusContainer}>
             {saveStatus === 'saving' && (
-              <ActivityIndicator size={20} />
+              <ActivityIndicator size={20} color={theme.colors.primary} />
             )}
             {saveStatus === 'saved' && (
-              <Icon source="check-circle" size={24} color="#4CAF50" />
+              <Icon source="check-circle" size={24} color={theme.colors.primary} />
             )}
           </View>
           <Menu
@@ -494,7 +496,7 @@ export default function EditorScreen() {
             style={styles.previewContainer}
             contentContainerStyle={styles.previewContent}
           >
-            <Text variant="titleLarge" style={styles.previewTitle}>
+            <Text variant="titleLarge" style={[styles.previewTitle, { color: theme.colors.onBackground }]}>
               {title || 'Untitled'}
             </Text>
             <MarkdownViewer content={content} />

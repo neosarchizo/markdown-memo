@@ -3,12 +3,14 @@ import { View, StyleSheet } from 'react-native';
 import { Text, FAB, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useMemos } from '@/contexts/MemoContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import MemoList from '@/components/MemoList/MemoList';
 import SearchBar from '@/components/Search/SearchBar';
 import { useSearch } from '@/hooks/useSearch';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const { memos, loading, error, refreshMemos, togglePin, deleteMemo } = useMemos();
   const [refreshing, setRefreshing] = useState(false);
   const { searchQuery, setSearchQuery, searchResults, isSearching } = useSearch(memos);
@@ -43,9 +45,9 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
-        <Text variant="bodyLarge" style={styles.loadingText}>
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text variant="bodyLarge" style={{ color: theme.colors.onBackground, marginTop: 16 }}>
           Loading memos...
         </Text>
       </View>
@@ -54,11 +56,11 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
-        <Text variant="titleLarge" style={styles.errorText}>
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <Text variant="titleLarge" style={{ color: theme.colors.error, marginBottom: 8 }}>
           Error
         </Text>
-        <Text variant="bodyMedium">{error}</Text>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onBackground }}>{error}</Text>
       </View>
     );
   }
@@ -66,9 +68,9 @@ export default function HomeScreen() {
   // Show welcome screen only if there are no memos at all
   if (memos.length === 0 && !searchQuery.trim()) {
     return (
-      <View style={styles.centerContainer}>
-        <Text variant="headlineMedium">Welcome to Markdown Memo</Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <Text variant="headlineMedium" style={{ color: theme.colors.onBackground }}>Welcome to Markdown Memo</Text>
+        <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onBackground }]}>
           Tap the button below to create your first memo
         </Text>
 
@@ -86,7 +88,7 @@ export default function HomeScreen() {
   const showEmptySearch = searchQuery.trim() && searchResults.length === 0 && !isSearching;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -95,8 +97,8 @@ export default function HomeScreen() {
 
       {showEmptySearch ? (
         <View style={styles.emptySearchContainer}>
-          <Text variant="titleLarge">No results found</Text>
-          <Text variant="bodyMedium" style={styles.subtitle}>
+          <Text variant="titleLarge" style={{ color: theme.colors.onBackground }}>No results found</Text>
+          <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onBackground }]}>
             Try a different search term
           </Text>
         </View>
@@ -136,13 +138,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-  },
-  loadingText: {
-    marginTop: 16,
-  },
-  errorText: {
-    color: '#d32f2f',
-    marginBottom: 8,
   },
   subtitle: {
     marginTop: 8,

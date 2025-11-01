@@ -28,11 +28,11 @@ function RootLayoutContent() {
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
-        <Text variant="titleLarge" style={styles.errorText}>
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <Text variant="titleLarge" style={{ color: theme.colors.error, marginBottom: 8 }}>
           Database Error
         </Text>
-        <Text variant="bodyMedium" style={styles.errorMessage}>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onBackground, textAlign: 'center', opacity: 0.7 }}>
           {error}
         </Text>
       </View>
@@ -41,9 +41,9 @@ function RootLayoutContent() {
 
   if (!dbReady) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
-        <Text variant="bodyLarge" style={styles.loadingText}>
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text variant="bodyLarge" style={{ color: theme.colors.onBackground, marginTop: 16 }}>
           Initializing...
         </Text>
       </View>
@@ -101,16 +101,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-  },
-  loadingText: {
-    marginTop: 16,
-  },
-  errorText: {
-    color: '#d32f2f',
-    marginBottom: 8,
-  },
-  errorMessage: {
-    textAlign: 'center',
-    opacity: 0.7,
   },
 });

@@ -7,7 +7,7 @@ import { ExportService } from '@/services/export';
 import type { SortType } from '@/types/memo';
 
 export default function SettingsScreen() {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, theme } = useTheme();
   const { sortType, setSortType, memos } = useMemos();
   const [exporting, setExporting] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <List.Section>
         <List.Subheader>Appearance</List.Subheader>
         <List.Item

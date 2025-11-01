@@ -67,7 +67,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
 
   return (
     <>
-      <Surface style={[styles.toolbar, { backgroundColor: theme.colors.elevation.level2 }]} elevation={2}>
+      <Surface style={[styles.toolbar, { backgroundColor: theme.colors.elevation.level2, borderTopColor: theme.colors.outlineVariant }]} elevation={2}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -79,7 +79,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
           <FormatButton icon="format-underline" onPress={actions.underline} />
           <FormatButton icon="format-strikethrough" onPress={actions.strikethrough} />
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
           {/* Heading */}
           <Menu
@@ -100,7 +100,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
             <Menu.Item onPress={() => { actions.heading(6); setHeadingMenuVisible(false); }} title="Heading 6" />
           </Menu>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
           {/* Lists */}
           <FormatButton icon="format-list-bulleted" onPress={actions.bulletList} />
@@ -109,7 +109,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ actions }) => {
           <FormatButton icon="format-indent-increase" onPress={actions.indent} />
           <FormatButton icon="format-indent-decrease" onPress={actions.outdent} />
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
           {/* Advanced */}
           <FormatButton icon="link-variant" onPress={() => setLinkDialogVisible(true)} />
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
   toolbar: {
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
     minHeight: 60,
   },
   scrollContent: {
@@ -211,7 +210,6 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 30,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     marginHorizontal: 4,
   },
   dialogInput: {
