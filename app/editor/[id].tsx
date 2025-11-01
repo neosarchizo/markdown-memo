@@ -36,6 +36,7 @@ export default function EditorScreen() {
   const originalTitleRef = useRef('');
   const originalContentRef = useRef('');
   const contentInputRef = useRef<RNTextInput>(null);
+  const exportButtonRef = useRef<View>(null);
 
   // Debounce content for auto-save (1 second)
   const debouncedTitle = useDebounce(title, 1000);
@@ -361,64 +362,68 @@ export default function EditorScreen() {
               <Icon source="check-circle" size={24} color="#4CAF50" />
             )}
           </View>
-          <Menu
-            visible={exportFormatMenuVisible}
-            onDismiss={() => setExportFormatMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="export-variant"
-                size={24}
-                onPress={() => setExportFormatMenuVisible(true)}
+          <View ref={exportButtonRef}>
+            <Menu
+              visible={exportFormatMenuVisible}
+              onDismiss={() => setExportFormatMenuVisible(false)}
+              anchor={
+                <IconButton
+                  icon="export-variant"
+                  size={24}
+                  onPress={() => setExportFormatMenuVisible(true)}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => openExportMenu('markdown')}
+                title="Export as Markdown"
+                leadingIcon="language-markdown"
               />
-            }
-          >
-            <Menu.Item
-              onPress={() => openExportMenu('markdown')}
-              title="Export as Markdown"
-              leadingIcon="language-markdown"
-            />
-            <Menu.Item
-              onPress={() => openExportMenu('pdf')}
-              title="Export as PDF"
-              leadingIcon="file-pdf-box"
-            />
-            <Menu.Item
-              onPress={() => openExportMenu('text')}
-              title="Export as Text"
-              leadingIcon="text-box"
-            />
-          </Menu>
+              <Menu.Item
+                onPress={() => openExportMenu('pdf')}
+                title="Export as PDF"
+                leadingIcon="file-pdf-box"
+              />
+              <Menu.Item
+                onPress={() => openExportMenu('text')}
+                title="Export as Text"
+                leadingIcon="text-box"
+              />
+            </Menu>
+          </View>
         </View>
       </View>
 
       {/* Export method menu */}
-      <Menu
-        visible={exportMenuVisible}
-        onDismiss={() => setExportMenuVisible(false)}
-        anchor={<View style={{ position: 'absolute', top: 50, right: 16 }} />}
-      >
-        <Menu.Item
-          onPress={() => handleExport('clipboard')}
-          title="Copy to Clipboard"
-          leadingIcon="content-copy"
-          disabled={selectedExportFormat === 'pdf'}
-        />
-        <Menu.Item
-          onPress={() => handleExport('share')}
-          title="Share"
-          leadingIcon="share-variant"
-        />
-        <Menu.Item
-          onPress={() => handleExport('save')}
-          title="Save to Device"
-          leadingIcon="content-save"
-        />
-        <Menu.Item
-          onPress={() => handleExport('email')}
-          title="Send via Email"
-          leadingIcon="email"
-        />
-      </Menu>
+      {exportButtonRef.current && (
+        <Menu
+          visible={exportMenuVisible}
+          onDismiss={() => setExportMenuVisible(false)}
+          anchor={exportButtonRef.current}
+        >
+          <Menu.Item
+            onPress={() => handleExport('clipboard')}
+            title="Copy to Clipboard"
+            leadingIcon="content-copy"
+            disabled={selectedExportFormat === 'pdf'}
+          />
+          <Menu.Item
+            onPress={() => handleExport('share')}
+            title="Share"
+            leadingIcon="share-variant"
+          />
+          <Menu.Item
+            onPress={() => handleExport('save')}
+            title="Save to Device"
+            leadingIcon="content-save"
+          />
+          <Menu.Item
+            onPress={() => handleExport('email')}
+            title="Send via Email"
+            leadingIcon="email"
+          />
+        </Menu>
+      )}
 
       <KeyboardAvoidingView
         style={styles.flex1}
