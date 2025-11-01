@@ -53,7 +53,14 @@ function RootLayoutContent() {
   return (
     <PaperProvider theme={theme}>
       <MemoProvider>
-        <Stack>
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: theme.colors.surface,
+            },
+            headerTintColor: theme.colors.onSurface,
+          }}
+        >
           <Stack.Screen
             name="index"
             options={{
