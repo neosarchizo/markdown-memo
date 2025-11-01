@@ -24,9 +24,9 @@
   },
   "homepage": "https://github.com/neosarchizo/markdown-memo#readme",
   "dependencies": {
-    "@react-native-clipboard/clipboard": "^1.16.3",
     "date-fns": "^4.1.0",
     "expo": "~51.0.0",
+    "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.2",
     "expo-crypto": "~13.0.2",
     "expo-file-system": "^19.0.17",
