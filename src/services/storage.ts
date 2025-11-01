@@ -50,81 +50,64 @@ export class StorageService {
    * Save a new memo
    */
   static async saveMemo(memo: Memo): Promise<void> {
-    console.log('[Storage] Saving new memo:', memo.title);
     const id = memo.id || randomUUID();
     const now = new Date().toISOString();
 
-    try {
-      await Database.transaction(async () => {
-        // Insert memo
-        await Database.executeUpdate(
-          `INSERT INTO memos (id, title, content, createdAt, updatedAt, isPinned)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [id, memo.title, memo.content, now, now, memo.isPinned ? 1 : 0]
-        );
+    await Database.transaction(async () => {
+      // Insert memo
+      await Database.executeUpdate(
+        `INSERT INTO memos (id, title, content, createdAt, updatedAt, isPinned)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, memo.title, memo.content, now, now, memo.isPinned ? 1 : 0]
+      );
 
-        // Insert tags
-        if (memo.tags && memo.tags.length > 0) {
-          await this.setTagsForMemo(id, memo.tags);
-        }
-      });
-      console.log('[Storage] Memo saved successfully:', id);
-    } catch (error) {
-      console.error('[Storage] Failed to save memo:', error);
-      throw error;
-    }
+      // Insert tags
+      if (memo.tags && memo.tags.length > 0) {
+        await this.setTagsForMemo(id, memo.tags);
+      }
+    });
   }
 
   /**
    * Update an existing memo
    */
   static async updateMemo(id: string, updates: Partial<Memo>): Promise<void> {
-    console.log('[Storage] Updating memo:', id, updates);
     const now = new Date().toISOString();
 
-    try {
-      // Build update query dynamically
-      const fields: string[] = [];
-      const values: (string | number)[] = [];
+    // Build update query dynamically
+    const fields: string[] = [];
+    const values: (string | number)[] = [];
 
-      if (updates.title !== undefined) {
-        fields.push('title = ?');
-        values.push(updates.title);
-      }
-      if (updates.content !== undefined) {
-        fields.push('content = ?');
-        values.push(updates.content);
-      }
-      if (updates.isPinned !== undefined) {
-        fields.push('isPinned = ?');
-        values.push(updates.isPinned ? 1 : 0);
-      }
+    if (updates.title !== undefined) {
+      fields.push('title = ?');
+      values.push(updates.title);
+    }
+    if (updates.content !== undefined) {
+      fields.push('content = ?');
+      values.push(updates.content);
+    }
+    if (updates.isPinned !== undefined) {
+      fields.push('isPinned = ?');
+      values.push(updates.isPinned ? 1 : 0);
+    }
 
-      // Always update updatedAt
-      fields.push('updatedAt = ?');
-      values.push(now);
+    // Always update updatedAt
+    fields.push('updatedAt = ?');
+    values.push(now);
 
-      if (fields.length > 0) {
-        values.push(id);
-        await Database.executeUpdate(
-          `UPDATE memos SET ${fields.join(', ')} WHERE id = ?`,
-          values
-        );
-        console.log('[Storage] Memo fields updated');
-      }
+    if (fields.length > 0) {
+      values.push(id);
+      await Database.executeUpdate(
+        `UPDATE memos SET ${fields.join(', ')} WHERE id = ?`,
+        values
+      );
+    }
 
-      // Update tags if provided (in a separate transaction if needed)
-      if (updates.tags !== undefined) {
-        await Database.transaction(async () => {
-          await this.setTagsForMemo(id, updates.tags!);
-        });
-        console.log('[Storage] Tags updated');
-      }
-
-      console.log('[Storage] Memo update complete');
-    } catch (error) {
-      console.error('[Storage] Failed to update memo:', error);
-      throw error;
+    // Update tags if provided (in a separate transaction if needed)
+    if (updates.tags !== undefined) {
+      await Database.transaction(async () => {
+        await this.setTagsForMemo(id, updates.tags!);
+      });
     }
   }
 

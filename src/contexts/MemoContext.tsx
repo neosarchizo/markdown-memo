@@ -35,7 +35,6 @@ export function MemoProvider({ children }: MemoProviderProps) {
   };
 
   const createMemo = useCallback(async (memoData: Partial<Memo>): Promise<Memo> => {
-    console.log('[MemoContext] createMemo called with:', memoData);
     try {
       const newMemo: Memo = {
         id: randomUUID(),
@@ -47,26 +46,22 @@ export function MemoProvider({ children }: MemoProviderProps) {
         isPinned: memoData.isPinned || false,
       };
 
-      console.log('[MemoContext] Calling StorageService.saveMemo');
       await StorageService.saveMemo(newMemo);
 
       // Add to local state
       setMemos((prev) => [newMemo, ...prev]);
 
-      console.log('[MemoContext] Memo created successfully');
       return newMemo;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create memo';
       setError(errorMessage);
-      console.error('[MemoContext] Error creating memo:', err);
+      console.error('Error creating memo:', err);
       throw err;
     }
   }, []);
 
   const updateMemo = useCallback(async (id: string, updates: Partial<Memo>): Promise<void> => {
-    console.log('[MemoContext] updateMemo called with id:', id, 'updates:', updates);
     try {
-      console.log('[MemoContext] Calling StorageService.updateMemo');
       await StorageService.updateMemo(id, updates);
 
       // Update local state
@@ -81,11 +76,10 @@ export function MemoProvider({ children }: MemoProviderProps) {
             : memo
         )
       );
-      console.log('[MemoContext] Memo updated successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update memo';
       setError(errorMessage);
-      console.error('[MemoContext] Error updating memo:', err);
+      console.error('Error updating memo:', err);
       throw err;
     }
   }, []);
