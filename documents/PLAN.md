@@ -535,13 +535,63 @@ npm install --save-dev eslint prettier @typescript-eslint/parser @typescript-esl
 - [ ] Confirmation dialogs
 - [ ] Toast notifications
 
-#### 8.2 Settings Screen
-- [ ] Create `app/settings.tsx`
-- [ ] Theme toggle
-- [ ] Sort preferences
-- [ ] About section
-- [ ] Export all memos
-- [ ] Navigate to settings from list screen
+#### 8.2 Settings Screen ✅ COMPLETED
+- [x] Create `app/settings.tsx`
+- [x] Theme toggle
+- [x] Sort preferences
+- [x] About section
+- [x] Export all memos
+- [x] Navigate to settings from list screen
+
+**Implementation Notes:**
+- Added settings navigation icon to home screen header in `app/_layout.tsx`
+- Implemented sort preferences in `MemoContext`:
+  - Added `sortType` state and `setSortType` method to MemoContextValue
+  - Sort preferences persist to SQLite using StorageService
+  - Memos automatically re-sort when sort type changes
+  - Pinned memos always appear first regardless of sort type
+  - Three sort options: Last Updated (default), Created Date, Title (alphabetical)
+- Enhanced Settings screen (`app/settings.tsx`):
+  - Appearance section: Dark mode toggle with Switch
+  - Sort Order section: RadioButton.Group for sort preference selection
+  - Data section: Export all memos functionality
+    - Combines all memos into single Markdown file
+    - Shows memo count in description
+    - Disabled when no memos exist
+    - Uses native share sheet for export
+    - Confirmation dialog before export
+    - Includes memo metadata (title, tags, dates)
+  - About section: App name and version number
+  - ScrollView for better layout on small screens
+  - Snackbar for export success feedback
+- StorageService enhancements:
+  - Added `saveSortType()` and `loadSortType()` methods
+  - Default sort type is 'updatedAt'
+- ExportService enhancement:
+  - Made `shareContent()` public for use in settings
+- Type system updates:
+  - Added `sortType` and `setSortType` to MemoContextValue interface
+
+**Testing:**
+- Settings icon appears in home screen header
+- Tapping settings icon navigates to Settings screen
+- Dark mode toggle works and persists across app restarts
+- Sort order changes immediately update memo list order
+- Sort preferences persist across app restarts
+- Pinned memos always appear first regardless of sort type
+- "Last Updated" sorts by most recent update (newest first)
+- "Created Date" sorts by creation date (newest first)
+- "Title" sorts alphabetically (A-Z)
+- Export all memos shows correct memo count
+- Export all memos button disabled when no memos exist
+- Export all memos opens share sheet with combined file
+- Export all memos includes all memo metadata (title, tags, dates)
+- Export all memos confirmation dialog displays correctly
+- Export success snackbar appears after successful export
+- About section displays app name and version
+- Settings screen scrolls properly on small screens
+
+---
 
 #### 8.3 Gestures
 - [ ] Swipe to delete (optional)

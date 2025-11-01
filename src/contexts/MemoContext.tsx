@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { randomUUID } from 'expo-crypto';
 import { StorageService } from '@/services/storage';
-import type { Memo, MemoContextValue } from '@/types/memo';
+import type { Memo, MemoContextValue, SortType } from '@/types/memo';
 
 const MemoContext = createContext<MemoContextValue | undefined>(undefined);
 
@@ -13,11 +13,33 @@ export function MemoProvider({ children }: MemoProviderProps) {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortType, setSortTypeState] = useState<SortType>('updatedAt');
 
-  // Load memos on mount
+  // Load memos and sort type on mount
   useEffect(() => {
-    loadMemos();
+    initializeContext();
   }, []);
+
+  const initializeContext = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load sort type preference
+      const savedSortType = await StorageService.loadSortType();
+      setSortTypeState(savedSortType);
+
+      // Load memos
+      const loadedMemos = await StorageService.loadMemos();
+      setMemos(loadedMemos);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize';
+      setError(errorMessage);
+      console.error('Error initializing context:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadMemos = async () => {
     try {
@@ -145,16 +167,52 @@ export function MemoProvider({ children }: MemoProviderProps) {
     await loadMemos();
   }, []);
 
+  const setSortType = useCallback(async (newSortType: SortType): Promise<void> => {
+    try {
+      await StorageService.saveSortType(newSortType);
+      setSortTypeState(newSortType);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save sort preference';
+      setError(errorMessage);
+      console.error('Error saving sort type:', err);
+      throw err;
+    }
+  }, []);
+
+  // Sort memos based on sortType
+  const sortedMemos = useMemo(() => {
+    return [...memos].sort((a, b) => {
+      // Pinned memos always come first
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+
+      // Then sort by selected type
+      switch (sortType) {
+        case 'createdAt':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'updatedAt':
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
+    });
+  }, [memos, sortType]);
+
   const value: MemoContextValue = {
-    memos,
+    memos: sortedMemos,
     loading,
     error,
+    sortType,
     createMemo,
     updateMemo,
     deleteMemo,
     togglePin,
     searchMemos,
     refreshMemos,
+    setSortType,
   };
 
   return <MemoContext.Provider value={value}>{children}</MemoContext.Provider>;

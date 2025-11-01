@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
-import { PaperProvider, ActivityIndicator, Text } from 'react-native-paper';
+import { Stack, useRouter } from 'expo-router';
+import { PaperProvider, ActivityIndicator, Text, IconButton } from 'react-native-paper';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { MemoProvider } from '@/contexts/MemoContext';
 import { StorageService } from '@/services/storage';
 
 function RootLayoutContent() {
   const { theme } = useTheme();
+  const router = useRouter();
   const [dbReady, setDbReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +59,12 @@ function RootLayoutContent() {
             options={{
               title: 'Memos',
               headerShown: true,
+              headerRight: () => (
+                <IconButton
+                  icon="cog-outline"
+                  onPress={() => router.push('/settings')}
+                />
+              ),
             }}
           />
           <Stack.Screen

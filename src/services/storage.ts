@@ -292,6 +292,21 @@ export class StorageService {
   }
 
   /**
+   * Save sort type preference
+   */
+  static async saveSortType(sortType: SortType): Promise<void> {
+    await this.saveSetting('sortType', sortType);
+  }
+
+  /**
+   * Load sort type preference
+   */
+  static async loadSortType(): Promise<SortType> {
+    const sortType = await this.loadSetting('sortType');
+    return (sortType as SortType) || 'updatedAt';
+  }
+
+  /**
    * Convert database row to Memo object
    */
   private static rowToMemo(row: MemoRow, tags: string[]): Memo {

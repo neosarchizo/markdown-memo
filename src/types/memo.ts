@@ -49,12 +49,14 @@ export interface MemoContextValue {
   memos: Memo[];
   loading: boolean;
   error: string | null;
+  sortType: SortType;
   createMemo: (memo: Partial<Memo>) => Promise<Memo>;
   updateMemo: (id: string, updates: Partial<Memo>) => Promise<void>;
   deleteMemo: (id: string) => Promise<void>;
   togglePin: (id: string) => Promise<void>;
   searchMemos: (query: string) => Memo[];
   refreshMemos: () => Promise<void>;
+  setSortType: (sortType: SortType) => Promise<void>;
 }
 
 export interface ThemeContextValue {

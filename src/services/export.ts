@@ -490,7 +490,7 @@ export class ExportService {
   /**
    * Share content using native share sheet
    */
-  private static async shareContent(
+  static async shareContent(
     content: string,
     filename: string,
     mimeType: string
