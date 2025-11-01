@@ -1,16 +1,19 @@
 import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system';
 import {
   documentDirectory,
   cacheDirectory,
   writeAsStringAsync,
   copyAsync,
   EncodingType,
+  StorageAccessFramework,
 } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
 import { Memo, ExportFormat, ExportMethod } from '../types/memo';
 import { format } from 'date-fns';
+import { Platform } from 'react-native';
 
 export class ExportService {
   /**
@@ -115,15 +118,7 @@ export class ExportService {
         });
         break;
       case 'save':
-        // Move temporary PDF to permanent location
-        const destUri = `${documentDirectory}${filename}`;
-        await copyAsync({ from: uri, to: destUri });
-        // Share to allow user to save to their chosen location
-        await Sharing.shareAsync(destUri, {
-          mimeType: 'application/pdf',
-          dialogTitle: 'Save PDF',
-          UTI: 'com.adobe.pdf',
-        });
+        await this.savePDFToDevice(uri, filename);
         break;
       case 'email':
         // For email, we need to pass the file URI
@@ -433,6 +428,45 @@ export class ExportService {
     filename: string,
     mimeType: string
   ): Promise<void> {
+    if (Platform.OS === 'android') {
+      // Android: Use Storage Access Framework for direct Downloads folder save
+      try {
+        const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permissions.granted) {
+          throw new Error('Storage permission not granted');
+        }
+
+        // Create file in selected directory (user can choose Downloads)
+        const fileUri = await StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          filename,
+          mimeType
+        );
+
+        // Write content to the file
+        await FileSystem.writeAsStringAsync(fileUri, content, {
+          encoding: EncodingType.UTF8,
+        });
+      } catch (error) {
+        // Fallback to share sheet if SAF fails
+        console.error('SAF save failed, falling back to share sheet:', error);
+        await this.saveToDeviceFallback(content, filename, mimeType);
+      }
+    } else {
+      // iOS: Use share sheet
+      await this.saveToDeviceFallback(content, filename, mimeType);
+    }
+  }
+
+  /**
+   * Fallback save method using share sheet
+   */
+  private static async saveToDeviceFallback(
+    content: string,
+    filename: string,
+    mimeType: string
+  ): Promise<void> {
     const fileUri = `${documentDirectory}${filename}`;
     await writeAsStringAsync(fileUri, content, {
       encoding: EncodingType.UTF8,
@@ -443,6 +477,69 @@ export class ExportService {
       await Sharing.shareAsync(fileUri, {
         mimeType,
         dialogTitle: 'Save Memo',
+      });
+    } else {
+      throw new Error('Sharing is not available on this device');
+    }
+  }
+
+  /**
+   * Save PDF file to device storage
+   */
+  private static async savePDFToDevice(
+    sourceUri: string,
+    filename: string
+  ): Promise<void> {
+    if (Platform.OS === 'android') {
+      // Android: Use Storage Access Framework for direct Downloads folder save
+      try {
+        const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permissions.granted) {
+          throw new Error('Storage permission not granted');
+        }
+
+        // Create file in selected directory (user can choose Downloads)
+        const fileUri = await StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          filename,
+          'application/pdf'
+        );
+
+        // Copy PDF content to the new file
+        const pdfContent = await FileSystem.readAsStringAsync(sourceUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        await FileSystem.writeAsStringAsync(fileUri, pdfContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      } catch (error) {
+        // Fallback to share sheet if SAF fails
+        console.error('SAF PDF save failed, falling back to share sheet:', error);
+        await this.savePDFToDeviceFallback(sourceUri, filename);
+      }
+    } else {
+      // iOS: Use share sheet
+      await this.savePDFToDeviceFallback(sourceUri, filename);
+    }
+  }
+
+  /**
+   * Fallback PDF save method using share sheet
+   */
+  private static async savePDFToDeviceFallback(
+    sourceUri: string,
+    filename: string
+  ): Promise<void> {
+    const destUri = `${documentDirectory}${filename}`;
+    await copyAsync({ from: sourceUri, to: destUri });
+
+    // Share to allow user to save to their chosen location
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(destUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: 'Save PDF',
+        UTI: 'com.adobe.pdf',
       });
     } else {
       throw new Error('Sharing is not available on this device');
