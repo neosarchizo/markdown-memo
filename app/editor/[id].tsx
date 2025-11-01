@@ -92,6 +92,7 @@ export default function EditorScreen() {
     }
 
     const autoSave = async () => {
+      console.log('[Editor] Auto-save triggered for memo:', id);
       isAutoSavingRef.current = true;
       setSaveStatus('saving');
       try {
@@ -106,11 +107,12 @@ export default function EditorScreen() {
         originalTagsRef.current = tags;
         // Show saved icon briefly
         setSaveStatus('saved');
+        console.log('[Editor] Auto-save complete');
         setTimeout(() => {
           setSaveStatus('idle');
         }, 1500);
       } catch (error) {
-        console.error('Error auto-saving memo:', error);
+        console.error('[Editor] Error auto-saving memo:', error);
         setSaveStatus('idle');
       } finally {
         // Reset after a short delay to allow memos state to update
@@ -272,7 +274,10 @@ export default function EditorScreen() {
   };
 
   const handleSave = async () => {
+    console.log('[Editor] handleSave called - title:', title, 'isNewMemo:', isNewMemo);
+
     if (!title.trim()) {
+      console.log('[Editor] Save aborted - empty title');
       setSnackbarMessage('Please enter a title');
       setSnackbarVisible(true);
       return;
@@ -281,6 +286,7 @@ export default function EditorScreen() {
     setLoading(true);
     try {
       if (isNewMemo) {
+        console.log('[Editor] Creating new memo');
         await createMemo({
           title: title.trim(),
           content: content.trim(),
@@ -288,13 +294,16 @@ export default function EditorScreen() {
           isPinned: false,
         });
         setSnackbarMessage('Memo created!');
+        console.log('[Editor] New memo created');
       } else {
+        console.log('[Editor] Updating existing memo');
         await updateMemo(id, {
           title: title.trim(),
           content: content.trim(),
           tags: tags,
         });
         setSnackbarMessage('Memo updated!');
+        console.log('[Editor] Memo updated');
       }
       setSnackbarVisible(true);
 
@@ -303,7 +312,7 @@ export default function EditorScreen() {
         router.back();
       }, 500);
     } catch (error) {
-      console.error('Error saving memo:', error);
+      console.error('[Editor] Error saving memo:', error);
       setSnackbarMessage('Failed to save memo');
       setSnackbarVisible(true);
     } finally {
