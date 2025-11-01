@@ -504,6 +504,10 @@ npm install --save-dev eslint prettier @typescript-eslint/parser @typescript-esl
   - Share sheet allows saving to various locations (Files, iCloud, etc.)
   - Email integration with file attachments for PDF, inline content for text
   - Clipboard copy for quick sharing
+- Bug fixes:
+  - Fixed Android IntentResolver crash by using share sheet instead of direct email for Markdown/Text/PDF
+  - Added error handling with try-catch for email composition
+  - Improved error messages for failed email operations
 
 **Testing:**
 - Export button appears in editor header (right side)

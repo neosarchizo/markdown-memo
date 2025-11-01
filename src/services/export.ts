@@ -63,7 +63,8 @@ export class ExportService {
         await this.saveToDevice(content, filename, 'text/markdown');
         break;
       case 'email':
-        await this.sendEmail(memo.title, content, filename, 'text/markdown');
+        // Use share instead of direct email to avoid IntentResolver crash
+        await this.shareContent(content, filename, 'text/markdown');
         break;
     }
   }
@@ -89,7 +90,8 @@ export class ExportService {
         await this.saveToDevice(content, filename, 'text/plain');
         break;
       case 'email':
-        await this.sendEmail(memo.title, content, filename, 'text/plain');
+        // Use share instead of direct email to avoid IntentResolver crash
+        await this.shareContent(content, filename, 'text/plain');
         break;
     }
   }
@@ -121,8 +123,12 @@ export class ExportService {
         await this.savePDFToDevice(uri, filename);
         break;
       case 'email':
-        // For email, we need to pass the file URI
-        await this.sendEmailWithAttachment(memo.title, uri, 'application/pdf');
+        // Use share instead of direct email to avoid IntentResolver crash on Android
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Share PDF via Email',
+          UTI: 'com.adobe.pdf',
+        });
         break;
     }
   }
@@ -646,24 +652,29 @@ export class ExportService {
       throw new Error('Email is not available on this device');
     }
 
-    // For text content, include in email body
-    // For files, attach them
-    if (mimeType === 'text/plain' || mimeType === 'text/markdown') {
-      await MailComposer.composeAsync({
-        subject,
-        body: content,
-      });
-    } else {
-      // Create temporary file for attachment
-      const fileUri = `${cacheDirectory}${filename}`;
-      await writeAsStringAsync(fileUri, content, {
-        encoding: EncodingType.UTF8,
-      });
+    try {
+      // For text content, include in email body
+      // For files, attach them
+      if (mimeType === 'text/plain' || mimeType === 'text/markdown') {
+        await MailComposer.composeAsync({
+          subject,
+          body: content,
+        });
+      } else {
+        // Create temporary file for attachment
+        const fileUri = `${cacheDirectory}${filename}`;
+        await writeAsStringAsync(fileUri, content, {
+          encoding: EncodingType.UTF8,
+        });
 
-      await MailComposer.composeAsync({
-        subject,
-        attachments: [fileUri],
-      });
+        await MailComposer.composeAsync({
+          subject,
+          attachments: [fileUri],
+        });
+      }
+    } catch (error) {
+      console.error('Email compose error:', error);
+      throw new Error('Failed to compose email');
     }
   }
 
@@ -672,18 +683,22 @@ export class ExportService {
    */
   private static async sendEmailWithAttachment(
     subject: string,
-    fileUri: string,
-    mimeType: string
+    fileUri: string
   ): Promise<void> {
     const isAvailable = await MailComposer.isAvailableAsync();
     if (!isAvailable) {
       throw new Error('Email is not available on this device');
     }
 
-    await MailComposer.composeAsync({
-      subject,
-      attachments: [fileUri],
-    });
+    try {
+      await MailComposer.composeAsync({
+        subject,
+        attachments: [fileUri],
+      });
+    } catch (error) {
+      console.error('Email compose error:', error);
+      throw new Error('Failed to compose email with attachment');
+    }
   }
 
   /**
