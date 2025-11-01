@@ -44,14 +44,10 @@ export default function EditorScreen() {
 
   // Load existing memo if editing
   useEffect(() => {
-    // Skip if auto-saving to prevent focus loss
-    if (isAutoSavingRef.current) {
-      return;
-    }
-
+    // Only load on initial mount or when id changes
     if (!isNewMemo) {
       const memo = memos.find((m) => m.id === id);
-      if (memo) {
+      if (memo && initialLoadRef.current) {
         setTitle(memo.title);
         setContent(memo.content);
         setTags(memo.tags);
@@ -63,7 +59,7 @@ export default function EditorScreen() {
     } else {
       initialLoadRef.current = false;
     }
-  }, [id, isNewMemo, memos]);
+  }, [id, isNewMemo]);
 
   // Auto-save existing memo when debounced values change
   useEffect(() => {
@@ -72,8 +68,8 @@ export default function EditorScreen() {
       return;
     }
 
-    // Skip if title and content are both empty
-    if (!debouncedTitle.trim() && !debouncedContent.trim()) {
+    // Skip if title is empty (require title for save)
+    if (!debouncedTitle.trim()) {
       return;
     }
 
@@ -96,12 +92,12 @@ export default function EditorScreen() {
       setSaveStatus('saving');
       try {
         await updateMemo(id, {
-          title: debouncedTitle.trim() || 'Untitled',
+          title: debouncedTitle.trim(),
           content: debouncedContent.trim(),
           tags: tags,
         });
         // Update original values after successful save
-        originalTitleRef.current = debouncedTitle.trim() || 'Untitled';
+        originalTitleRef.current = debouncedTitle.trim();
         originalContentRef.current = debouncedContent.trim();
         originalTagsRef.current = tags;
         // Show saved icon briefly

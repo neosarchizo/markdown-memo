@@ -313,6 +313,9 @@ export class ExportService {
   private static markdownToHTML(markdown: string): string {
     let html = markdown;
 
+    // Tables (must be before other conversions)
+    html = this.convertTablesToHTML(html);
+
     // Code blocks (must be before inline code)
     html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
       return `<pre><code>${this.escapeHTML(code.trim())}</code></pre>`;
@@ -372,7 +375,90 @@ export class ExportService {
     html = html.replace(/<p>(<pre>)/g, '$1');
     html = html.replace(/(<\/pre>)<\/p>/g, '$1');
     html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<table>)/g, '$1');
+    html = html.replace(/(<\/table>)<\/p>/g, '$1');
 
+    return html;
+  }
+
+  /**
+   * Convert Markdown tables to HTML tables
+   */
+  private static convertTablesToHTML(markdown: string): string {
+    const lines = markdown.split('\n');
+    const result: string[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // Check if this line is a table header (contains |)
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        // Check if next line is separator (contains ---)
+        if (i + 1 < lines.length && lines[i + 1].includes('---')) {
+          const tableLines: string[] = [line, lines[i + 1]];
+          i += 2;
+
+          // Collect remaining table rows
+          while (i < lines.length && lines[i].trim().startsWith('|')) {
+            tableLines.push(lines[i]);
+            i++;
+          }
+
+          // Convert table to HTML
+          result.push(this.tableToHTML(tableLines));
+          continue;
+        }
+      }
+
+      result.push(line);
+      i++;
+    }
+
+    return result.join('\n');
+  }
+
+  /**
+   * Convert a single Markdown table to HTML
+   */
+  private static tableToHTML(tableLines: string[]): string {
+    if (tableLines.length < 2) {
+      return tableLines.join('\n');
+    }
+
+    let html = '<table>\n';
+
+    // Parse header row (first line)
+    const headerCells = tableLines[0]
+      .split('|')
+      .map((cell) => cell.trim())
+      .filter((cell) => cell.length > 0);
+
+    html += '<thead>\n<tr>\n';
+    headerCells.forEach((cell) => {
+      html += `<th>${this.escapeHTML(cell)}</th>\n`;
+    });
+    html += '</tr>\n</thead>\n';
+
+    // Parse data rows (skip separator line at index 1)
+    if (tableLines.length > 2) {
+      html += '<tbody>\n';
+      for (let i = 2; i < tableLines.length; i++) {
+        const cells = tableLines[i]
+          .split('|')
+          .map((cell) => cell.trim())
+          .filter((cell) => cell.length > 0);
+
+        html += '<tr>\n';
+        cells.forEach((cell) => {
+          html += `<td>${this.escapeHTML(cell)}</td>\n`;
+        });
+        html += '</tr>\n';
+      }
+      html += '</tbody>\n';
+    }
+
+    html += '</table>';
     return html;
   }
 
