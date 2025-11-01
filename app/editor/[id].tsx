@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TextInput as RNTextInput } from 'react-native';
-import { TextInput, Button, ActivityIndicator, Snackbar, Text } from 'react-native-paper';
+import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { useMemos } from '@/contexts/MemoContext';
@@ -8,6 +8,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import ViewToggle from '@/components/Viewer/ViewToggle';
 import MarkdownViewer from '@/components/Viewer/MarkdownViewer';
 import { EditorToolbar, ToolbarActions } from '@/components/Editor/EditorToolbar';
+import { TagInput } from '@/components/Common/TagInput';
 
 export default function EditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,11 +17,12 @@ export default function EditorScreen() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('raw');
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [selection, setSelection] = useState({ start: 0, end: 0 });
 
   const isNewMemo = id === 'new';
@@ -30,9 +32,9 @@ export default function EditorScreen() {
   const originalContentRef = useRef('');
   const contentInputRef = useRef<RNTextInput>(null);
 
-  // Debounce content for auto-save (30 seconds)
-  const debouncedTitle = useDebounce(title, 30000);
-  const debouncedContent = useDebounce(content, 30000);
+  // Debounce content for auto-save (1 second)
+  const debouncedTitle = useDebounce(title, 1000);
+  const debouncedContent = useDebounce(content, 1000);
 
   // Load existing memo if editing
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function EditorScreen() {
       if (memo) {
         setTitle(memo.title);
         setContent(memo.content);
+        setTags(memo.tags);
         originalTitleRef.current = memo.title;
         originalContentRef.current = memo.content;
         initialLoadRef.current = false;
@@ -78,22 +81,25 @@ export default function EditorScreen() {
 
     const autoSave = async () => {
       isAutoSavingRef.current = true;
-      setIsSaving(true);
+      setSaveStatus('saving');
       try {
         await updateMemo(id, {
           title: debouncedTitle.trim() || 'Untitled',
           content: debouncedContent.trim(),
+          tags: tags,
         });
         // Update original values after successful save
         originalTitleRef.current = debouncedTitle.trim() || 'Untitled';
         originalContentRef.current = debouncedContent.trim();
-        // Show toast without stealing focus
-        setSnackbarMessage('Auto-saved');
-        setSnackbarVisible(true);
+        // Show saved icon briefly
+        setSaveStatus('saved');
+        setTimeout(() => {
+          setSaveStatus('idle');
+        }, 1500);
       } catch (error) {
         console.error('Error auto-saving memo:', error);
+        setSaveStatus('idle');
       } finally {
-        setIsSaving(false);
         // Reset after a short delay to allow memos state to update
         setTimeout(() => {
           isAutoSavingRef.current = false;
@@ -265,7 +271,7 @@ export default function EditorScreen() {
         await createMemo({
           title: title.trim(),
           content: content.trim(),
-          tags: [],
+          tags: tags,
           isPinned: false,
         });
         setSnackbarMessage('Memo created!');
@@ -273,6 +279,7 @@ export default function EditorScreen() {
         await updateMemo(id, {
           title: title.trim(),
           content: content.trim(),
+          tags: tags,
         });
         setSnackbarMessage('Memo updated!');
       }
@@ -294,12 +301,17 @@ export default function EditorScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ViewToggle value={viewMode} onValueChange={setViewMode} />
-        {isSaving && (
-          <Text variant="bodySmall" style={styles.savingText}>
-            Saving...
-          </Text>
-        )}
+        <View style={styles.toggleContainer}>
+          <ViewToggle value={viewMode} onValueChange={setViewMode} />
+        </View>
+        <View style={styles.saveStatusContainer}>
+          {saveStatus === 'saving' && (
+            <ActivityIndicator size={20} />
+          )}
+          {saveStatus === 'saved' && (
+            <Icon source="check-circle" size={24} color="#4CAF50" />
+          )}
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -321,6 +333,12 @@ export default function EditorScreen() {
                 mode="outlined"
                 style={styles.titleInput}
                 placeholder="Enter memo title"
+                disabled={loading}
+              />
+              <TagInput
+                tags={tags}
+                onAddTag={(tag) => setTags([...tags, tag])}
+                onRemoveTag={(tag) => setTags(tags.filter(t => t !== tag))}
                 disabled={loading}
               />
               <TextInput
@@ -386,11 +404,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingRight: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  savingText: {
-    opacity: 0.6,
-    fontStyle: 'italic',
+  toggleContainer: {
+    flex: 1,
+    marginRight: 16,
+  },
+  saveStatusContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,

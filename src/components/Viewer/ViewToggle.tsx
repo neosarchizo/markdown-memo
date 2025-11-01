@@ -31,7 +31,6 @@ export default function ViewToggle({ value, onValueChange }: ViewToggleProps) {
 
 const styles = StyleSheet.create({
   toggle: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    // marginHorizontal removed - handled by parent container
   },
 });

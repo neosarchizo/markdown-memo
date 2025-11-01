@@ -78,24 +78,30 @@ export default function MemoItem({ memo, onPress, onTogglePin, onDelete }: MemoI
           </Text>
         )}
 
+        {memo.tags.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {memo.tags.slice(0, 3).map((tag) => (
+              <Chip key={tag} compact style={styles.tag} textStyle={styles.tagText}>
+                {tag}
+              </Chip>
+            ))}
+            {memo.tags.length > 3 && (
+              <Text variant="bodySmall" style={styles.moreTagsText}>
+                +{memo.tags.length - 3}
+              </Text>
+            )}
+          </View>
+        )}
+
         <View style={styles.cardFooter}>
-          <Text variant="bodySmall" style={styles.date}>
-            {format(new Date(memo.updatedAt), 'MMM d, yyyy')}
-          </Text>
-          {memo.tags.length > 0 && (
-            <View style={styles.tags}>
-              {memo.tags.slice(0, 3).map((tag) => (
-                <Chip key={tag} compact style={styles.tag}>
-                  {tag}
-                </Chip>
-              ))}
-              {memo.tags.length > 3 && (
-                <Text variant="bodySmall" style={styles.moreTagsText}>
-                  +{memo.tags.length - 3}
-                </Text>
-              )}
-            </View>
-          )}
+          <View style={styles.metadata}>
+            <Text variant="bodySmall" style={styles.date}>
+              Updated: {format(new Date(memo.updatedAt), 'MMM d, yyyy HH:mm')}
+            </Text>
+            <Text variant="bodySmall" style={styles.date}>
+              Created: {format(new Date(memo.createdAt), 'MMM d, yyyy')}
+            </Text>
+          </View>
         </View>
       </Card.Content>
     </Card>
@@ -128,24 +134,32 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginBottom: 8,
   },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  date: {
-    opacity: 0.6,
-  },
-  tags: {
+  tagsContainer: {
     flexDirection: 'row',
     gap: 4,
     alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
   },
   tag: {
-    height: 24,
+    height: 32,
+  },
+  tagText: {
+    marginVertical: 4,
+    lineHeight: 20,
   },
   moreTagsText: {
     opacity: 0.6,
+  },
+  cardFooter: {
+    marginTop: 4,
+  },
+  metadata: {
+    flexDirection: 'column',
+    gap: 2,
+  },
+  date: {
+    opacity: 0.6,
+    fontSize: 11,
   },
 });
