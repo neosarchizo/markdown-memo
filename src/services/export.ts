@@ -1,5 +1,11 @@
 import * as Clipboard from 'expo-clipboard';
-import * as FileSystem from 'expo-file-system';
+import {
+  documentDirectory,
+  cacheDirectory,
+  writeAsStringAsync,
+  copyAsync,
+  EncodingType,
+} from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
@@ -110,8 +116,8 @@ export class ExportService {
         break;
       case 'save':
         // Move temporary PDF to permanent location
-        const destUri = `${FileSystem.documentDirectory}${filename}`;
-        await FileSystem.copyAsync({ from: uri, to: destUri });
+        const destUri = `${documentDirectory}${filename}`;
+        await copyAsync({ from: uri, to: destUri });
         // Share to allow user to save to their chosen location
         await Sharing.shareAsync(destUri, {
           mimeType: 'application/pdf',
@@ -403,9 +409,9 @@ export class ExportService {
     mimeType: string
   ): Promise<void> {
     // Write content to temporary file
-    const fileUri = `${FileSystem.cacheDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(fileUri, content, {
-      encoding: FileSystem.EncodingType.UTF8,
+    const fileUri = `${cacheDirectory}${filename}`;
+    await writeAsStringAsync(fileUri, content, {
+      encoding: EncodingType.UTF8,
     });
 
     // Share the file
@@ -427,9 +433,9 @@ export class ExportService {
     filename: string,
     mimeType: string
   ): Promise<void> {
-    const fileUri = `${FileSystem.documentDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(fileUri, content, {
-      encoding: FileSystem.EncodingType.UTF8,
+    const fileUri = `${documentDirectory}${filename}`;
+    await writeAsStringAsync(fileUri, content, {
+      encoding: EncodingType.UTF8,
     });
 
     // Use share sheet to allow user to save to their chosen location
@@ -466,9 +472,9 @@ export class ExportService {
       });
     } else {
       // Create temporary file for attachment
-      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
-      await FileSystem.writeAsStringAsync(fileUri, content, {
-        encoding: FileSystem.EncodingType.UTF8,
+      const fileUri = `${cacheDirectory}${filename}`;
+      await writeAsStringAsync(fileUri, content, {
+        encoding: EncodingType.UTF8,
       });
 
       await MailComposer.composeAsync({
