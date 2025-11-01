@@ -1,10 +1,11 @@
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TextInput as RNTextInput } from 'react-native';
-import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon } from 'react-native-paper';
+import { TextInput, Button, ActivityIndicator, Snackbar, Text, Icon, IconButton, Menu } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { useMemos } from '@/contexts/MemoContext';
-import { ViewMode } from '@/types/memo';
+import { ViewMode, ExportFormat, ExportMethod, Memo } from '@/types/memo';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useExport } from '@/hooks/useExport';
 import ViewToggle from '@/components/Viewer/ViewToggle';
 import MarkdownViewer from '@/components/Viewer/MarkdownViewer';
 import { EditorToolbar, ToolbarActions } from '@/components/Editor/EditorToolbar';
@@ -14,6 +15,7 @@ export default function EditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { memos, createMemo, updateMemo } = useMemos();
+  const { exportMemo } = useExport();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -24,6 +26,9 @@ export default function EditorScreen() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [exportFormatMenuVisible, setExportFormatMenuVisible] = useState(false);
+  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>('markdown');
 
   const isNewMemo = id === 'new';
   const initialLoadRef = useRef(true);
@@ -298,21 +303,122 @@ export default function EditorScreen() {
     }
   };
 
+  const handleExport = async (method: ExportMethod) => {
+    setExportMenuVisible(false);
+    setExportFormatMenuVisible(false);
+
+    // Create current memo object
+    const currentMemo: Memo = {
+      id: id,
+      title: title.trim() || 'Untitled',
+      content: content.trim(),
+      tags: tags,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPinned: false,
+    };
+
+    // For existing memo, use actual data
+    if (!isNewMemo) {
+      const existingMemo = memos.find((m) => m.id === id);
+      if (existingMemo) {
+        currentMemo.createdAt = existingMemo.createdAt;
+        currentMemo.updatedAt = existingMemo.updatedAt;
+        currentMemo.isPinned = existingMemo.isPinned;
+      }
+    }
+
+    try {
+      await exportMemo(currentMemo, selectedExportFormat, method);
+      setSnackbarMessage(`Exported as ${selectedExportFormat.toUpperCase()}`);
+      setSnackbarVisible(true);
+    } catch (error) {
+      console.error('Export error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Export failed';
+      setSnackbarMessage(errorMessage);
+      setSnackbarVisible(true);
+    }
+  };
+
+  const openExportMenu = (format: ExportFormat) => {
+    setSelectedExportFormat(format);
+    setExportFormatMenuVisible(false);
+    setExportMenuVisible(true);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.toggleContainer}>
           <ViewToggle value={viewMode} onValueChange={setViewMode} />
         </View>
-        <View style={styles.saveStatusContainer}>
-          {saveStatus === 'saving' && (
-            <ActivityIndicator size={20} />
-          )}
-          {saveStatus === 'saved' && (
-            <Icon source="check-circle" size={24} color="#4CAF50" />
-          )}
+        <View style={styles.headerRightContainer}>
+          <View style={styles.saveStatusContainer}>
+            {saveStatus === 'saving' && (
+              <ActivityIndicator size={20} />
+            )}
+            {saveStatus === 'saved' && (
+              <Icon source="check-circle" size={24} color="#4CAF50" />
+            )}
+          </View>
+          <Menu
+            visible={exportFormatMenuVisible}
+            onDismiss={() => setExportFormatMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="export-variant"
+                size={24}
+                onPress={() => setExportFormatMenuVisible(true)}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => openExportMenu('markdown')}
+              title="Export as Markdown"
+              leadingIcon="language-markdown"
+            />
+            <Menu.Item
+              onPress={() => openExportMenu('pdf')}
+              title="Export as PDF"
+              leadingIcon="file-pdf-box"
+            />
+            <Menu.Item
+              onPress={() => openExportMenu('text')}
+              title="Export as Text"
+              leadingIcon="text-box"
+            />
+          </Menu>
         </View>
       </View>
+
+      {/* Export method menu */}
+      <Menu
+        visible={exportMenuVisible}
+        onDismiss={() => setExportMenuVisible(false)}
+        anchor={<View style={{ position: 'absolute', top: 50, right: 16 }} />}
+      >
+        <Menu.Item
+          onPress={() => handleExport('clipboard')}
+          title="Copy to Clipboard"
+          leadingIcon="content-copy"
+          disabled={selectedExportFormat === 'pdf'}
+        />
+        <Menu.Item
+          onPress={() => handleExport('share')}
+          title="Share"
+          leadingIcon="share-variant"
+        />
+        <Menu.Item
+          onPress={() => handleExport('save')}
+          title="Save to Device"
+          leadingIcon="content-save"
+        />
+        <Menu.Item
+          onPress={() => handleExport('email')}
+          title="Send via Email"
+          leadingIcon="email"
+        />
+      </Menu>
 
       <KeyboardAvoidingView
         style={styles.flex1}
@@ -410,6 +516,10 @@ const styles = StyleSheet.create({
   toggleContainer: {
     flex: 1,
     marginRight: 16,
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   saveStatusContainer: {
     width: 40,
