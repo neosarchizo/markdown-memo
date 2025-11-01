@@ -35,6 +35,7 @@ export default function EditorScreen() {
   const isAutoSavingRef = useRef(false);
   const originalTitleRef = useRef('');
   const originalContentRef = useRef('');
+  const originalTagsRef = useRef<string[]>([]);
   const contentInputRef = useRef<RNTextInput>(null);
 
   // Debounce content for auto-save (1 second)
@@ -56,6 +57,7 @@ export default function EditorScreen() {
         setTags(memo.tags);
         originalTitleRef.current = memo.title;
         originalContentRef.current = memo.content;
+        originalTagsRef.current = memo.tags;
         initialLoadRef.current = false;
       }
     } else {
@@ -76,9 +78,14 @@ export default function EditorScreen() {
     }
 
     // Check if there are actual changes
+    const tagsChanged =
+      tags.length !== originalTagsRef.current.length ||
+      tags.some((tag, index) => tag !== originalTagsRef.current[index]);
+
     const hasChanges =
       debouncedTitle.trim() !== originalTitleRef.current.trim() ||
-      debouncedContent.trim() !== originalContentRef.current.trim();
+      debouncedContent.trim() !== originalContentRef.current.trim() ||
+      tagsChanged;
 
     if (!hasChanges) {
       return;
@@ -96,6 +103,7 @@ export default function EditorScreen() {
         // Update original values after successful save
         originalTitleRef.current = debouncedTitle.trim() || 'Untitled';
         originalContentRef.current = debouncedContent.trim();
+        originalTagsRef.current = tags;
         // Show saved icon briefly
         setSaveStatus('saved');
         setTimeout(() => {
@@ -113,7 +121,7 @@ export default function EditorScreen() {
     };
 
     autoSave();
-  }, [debouncedTitle, debouncedContent, id, isNewMemo, updateMemo]);
+  }, [debouncedTitle, debouncedContent, tags, id, isNewMemo, updateMemo]);
 
   // Format insertion helpers
   const insertFormat = (prefix: string, suffix: string = '') => {
